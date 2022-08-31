@@ -238,6 +238,36 @@ describe.only("Pancake NFT Market ", function async() {
     // console.log(result2)
   });
 
+it("Add collection with restrictions",async ()=>{
+
+  await nftmarket.addCollection(pancakeBunnies.address,constants.AddressZero,pancakeBunniesChecker.address,"100","0")
+
+  let i = 0;
+
+  while (i < 5) {
+    await pancakeBunnies.mint(seller1.address, "ipfs://" + i.toString(), i);
+    i++;
+  }
+
+
+  await pancakeBunniesChecker.addRestrictionForBunnies([3,4])
+
+  await pancakeBunnies.connect(seller1).setApprovalForAll(nftmarket.address,true)
+
+
+  await expect(nftmarket.createAskOrder(pancakeBunnies.address,"3",parseEther("3"))).to.be.revertedWith("Order: tokenId not eligible")
+  await expect(nftmarket.createAskOrder(pancakeBunnies.address,"4",parseEther("3"))).to.be.revertedWith("Order: tokenId not eligible")
+
+  await pancakeBunniesChecker.removeRestrictionForBunnies([3,4])
+
+  await nftmarket.connect(seller1).createAskOrder(pancakeBunnies.address,"4",parseEther("3"))
+
+
+
+})
+
+
+
   // it("Seller 1 List a NFT",async () =>{
   //   await nftmarket.connect(seller1).createAskOrder(nft.address,"0",parseEther("1"))
   // })
